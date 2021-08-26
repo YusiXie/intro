@@ -1,0 +1,164 @@
+---
+title: "MSBR 70200 In-Class Exercise: Decision Analysis"
+date: today
+author: your name
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+<br>
+
+
+The Newtowne Art Gallery has a valuable painting that it wishes to sell at auction. There will be two bidders for the painting. The first bidder will bid on Monday and the second will bid on Tuesday. Each bid must be accepted or rejected that same day. If all two bids are rejected, the painting will be sold for a standing offer of \$900,000. Newtowne's chief auctioneer's estimates for the bid probabilities are contained in the following Table. For example, the auctioneer has estimated that the likelihood the second bidder will bid \$2,000,000 is p = 0.80. Assume that the auctioneer will use EMV (Expected Monetary Value) as the decision criterion.
+
+```{r}
+dfArtAuction <- data.frame(
+  amount_of_bid = c(1, 2, 3, 4),
+  prob_of_mon_bid = c(0, 0.5, 0.5, 0),
+  prob_of_tue_bid = c(0, 0.8, 0, 0.2)
+)
+
+library(knitr)
+kable(dfArtAuction, caption = 'Estimates of the probabilities by the three bidders (unit for bid is million dollar.)')
+```
+
+
+* * *
+
+#### Suppose it is Tuesday.
+
+(a) What are the possible bids on Tuesday?
+
+<br>
+$2M offer
+$4M offer
+<br>
+
+(b) What are the auctioneer's decision alternatives on Tuesday?
+
+<br>
+accept the $2M offer and reject the standing offer
+accept the $4M offer and reject the standing offer
+<br>
+
+(c) Visualize the decisions on Tuesday.
+
+<br>
+we visualize the decision on notebook
+<br>
+
+(d) What should the auctioneer do on Tuesday?
+
+<br>
+if the offer is 2M then accept it, if the offer is 4M also accept it
+<br>
+
+* * *
+
+#### Suppose it is Monday.
+
+(e) Visualize the decisions on Monday.
+
+<br>
+on notebook
+<br>
+
+(f) What should the auctioneer do on Monday?
+
+<br>
+reject the $2M offer
+accept the $3M offer
+<br>
+
+(g) How much should the auctioneer to expect to earn from this auction? (i.e., what is the EMV of this auction?)
+
+<br>
+EMV(Monday)<-0.5*3+0.5*2.4
+<br>
+
+* * *
+
+#### Try solve the same problem using R. Your script should tell a) The auctioneer’s action on a given bid at each day b) the EMV of this auction.
+
+
+```{r}
+standing_offer <- 0.9
+
+# Your code here
+
+# 1. Tuesday first
+# the auctioneer should accept a bid if the bid is greater than the standing offer.
+dfArtAuction <- data.frame(
+  amount_of_bid = c(1, 2, 3, 4),
+  prob_of_mon_bid = c(0, 0.5, 0.5, 0),
+  prob_of_tue_bid = c(0, 0.8, 0, 0.2)
+)
+
+standing_offer <- 0.9
+
+install.packages("dplyr")
+library(dplyr)
+
+df_Tuesday<-dfArtAuction %>%
+  mutate(tue_dec = ifelse(amount_of_bid > standing_offer,
+                          "Accept", "Reject")) %>%
+  mutate(tue_val = ifelse(tue_dec == "Accept", amount_of_bid*prob_of_tue_bid,
+                          standing_offer * prob_of_tue_bid))
+Tue_EMV <- sum(df_Tuesday$tue_val)
+
+
+
+# 2. Monday
+# the auctioneer should compare the Monday bid to the Tuesday EMV.
+dfMonday<-df_Tuesday %>% 
+  mutate(Mon_des = ifelse(amount_of_bid > Tue_emv, "Accept", "Reject")) %>% 
+  mutate(Mon_val = ifelse(Mon_des == "Accept", prob_of_mon_bid * amount_of_bid,
+                          prob_of_mon_bid * Tue_emv))
+Mon_emv<-sum(dfMonday$Mon_val)
+
+
+
+```
+
+<br>
+<br>
+<br>
+
+
+
+* * *
+
+#### (Challenging) How would you generalize your coding above for *n*-days?
+
+For example, suppose you have the following 10 days of information. You may not want to copy-and-paste-and-revise 10 times. How would you do?
+```{r}
+
+set.seed(70200)
+
+n_days <- 10
+sim_size <- 100
+bid_amounts <- c(1, 2, 3, 4)
+
+# randomly generate 10 days of bid probabilities
+probabilities <- replicate(n_days, 
+                           table(sample(bid_amounts, size = sim_size, replace = T))/sim_size,
+                           simplify = T)
+
+# construct a test data set
+dfArtAuction2 <- data.frame(
+  amount_of_bid = rep(bid_amounts, n_days),
+  day = rep( seq(1, n_days, 1), each = 4), 
+  prob = c(probabilities)
+)
+
+
+# to see values in dfArtAuction2
+dfArtAuction2
+
+```
+
+
